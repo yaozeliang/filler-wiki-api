@@ -1,0 +1,17 @@
+[project]
+name = "filler-wiki-api"
+version = "0.1.0"
+description = "Default template for PDM package"
+authors = [
+    {name = "zeliang.yao", email = "zeliang.yao_filler@2925.com"},
+]
+dependencies = ["fastapi>=0.115.11", "pandas>=2.2.3", "openpyxl>=3.1.5", "pyarrow>=19.0.1", "uvicorn>=0.34.0", "motor>=3.7.0", "pymongo>=4.11.1", "pydantic-settings>=2.8.1", "pytz>=2025.1", "python-jose[cryptography]>=3.4.0", "passlib==1.7.4", "python-multipart>=0.0.20", "pydantic[email]>=2.10.6", "bcrypt==3.2.0"]
+requires-python = "==3.10.*"
+readme = "README.md"
+license = {text = "MIT"}
+
+
+[tool.pdm]
+distribution = false
+[tool.pdm.scripts]
+dev = "uvicorn app.main:app --reload --host 0.0.0.0 --port 8000"
