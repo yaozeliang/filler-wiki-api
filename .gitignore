@@ -4,15 +4,35 @@ __pycache__/
 *$py.class
 *.so
 .Python
+env/
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+*.egg-info/
+.installed.cfg
+*.egg
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Environment variables
 .env
 .venv
-.scripts/
 env/
 venv/
 ENV/
-.pdm.toml
-.pdm-python
-.pdm-build/
+
+# Logs
+logs/
+*.log
 
 # IDE
 .idea/
@@ -20,8 +40,13 @@ ENV/
 *.swp
 *.swo
 
-# Logs
-*.log
+# OS specific
+.DS_Store
+Thumbs.db
+
+# PDM
+.pdm.toml
+__pypackages__/
 
 # Local MongoDB data
 data/
