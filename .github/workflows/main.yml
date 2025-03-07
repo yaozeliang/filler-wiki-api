@@ -50,7 +50,6 @@ jobs:
     if: github.ref == 'refs/heads/main' && github.event_name == 'push'
     steps:
       - uses: actions/checkout@v3
-      
       # Auth to Google Cloud
       - name: Auth to Google Cloud
         id: auth
