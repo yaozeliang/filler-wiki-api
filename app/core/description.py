@@ -34,4 +34,4 @@ For technical support, please contact:
     datetime.now(pytz.UTC).strftime(TARGET_TIME_FORMAT),
     datetime.now(pytz.timezone('Europe/Paris')).strftime(TARGET_TIME_FORMAT),
     datetime.now(pytz.timezone('Asia/Shanghai')).strftime(TARGET_TIME_FORMAT)
-) 
+)
