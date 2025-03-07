@@ -17,10 +17,10 @@ COPY scripts/ ./scripts/
 
 # Set environment variables
 ENV PYTHONPATH=/app
-ENV PORT=8000
+ENV PORT=8080
 
 # Expose port
-EXPOSE 8000
+EXPOSE 8080
 
-# Run the application
-CMD exec uvicorn app.main:app --host 0.0.0.0 --port $PORT 
+# Run the application with PDM
+CMD pdm run uvicorn app.main:app --host 0.0.0.0 --port $PORT 
