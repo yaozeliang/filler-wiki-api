@@ -29,27 +29,34 @@ router = APIRouter(
 async def register_user(user_create: UserCreate, db: AsyncIOMotorDatabase = Depends(get_database)):
     try:
         # Validate password
+        logger.info(f"Validating password for user: {user_create.username}")
         if not validate_password(user_create.password):
+            logger.warning(f"Password validation failed for user: {user_create.username}")
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
                 detail="Password does not meet complexity requirements"
             )
         
         # Check if user exists
+        logger.info(f"Checking if username exists: {user_create.username}")
         if await db.users.find_one({"username": user_create.username}):
+            logger.warning(f"Username already exists: {user_create.username}")
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
                 detail="Username already registered"
             )
         
         # Check if email exists
+        logger.info(f"Checking if email exists: {user_create.email}")
         if await db.users.find_one({"email": user_create.email}):
+            logger.warning(f"Email already exists: {user_create.email}")
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
                 detail="Email already registered"
             )
         
         # Create user document
+        logger.info(f"Creating user document for: {user_create.username}")
         user_dict = {
             "username": user_create.username,
             "email": user_create.email,
@@ -59,24 +66,32 @@ async def register_user(user_create: UserCreate, db: AsyncIOMotorDatabase = Depe
         }
         
         try:
+            logger.info(f"Inserting user into database: {user_create.username}")
             result = await db.users.insert_one(user_dict)
-        except DuplicateKeyError:
+            logger.info(f"User inserted with ID: {result.inserted_id}")
+        except DuplicateKeyError as e:
+            logger.error(f"DuplicateKeyError: {str(e)}")
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
                 detail="Username or email already exists"
             )
-        except ConnectionFailure:
+        except ConnectionFailure as e:
+            logger.error(f"ConnectionFailure: {str(e)}")
             raise HTTPException(
                 status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
                 detail="Database connection error"
             )
+        except Exception as e:
+            logger.error(f"Unexpected error during insert: {str(e)}", exc_info=True)
+            raise
             
+        logger.info(f"Fetching created user: {user_create.username}")
         created_user = await db.users.find_one({"_id": result.inserted_id})
         logger.info(f"User registered successfully: {user_create.username}")
         return UserResponse(**created_user)
         
     except Exception as e:
-        logger.error(f"Error registering user {user_create.username}: {str(e)}")
+        logger.error(f"Error registering user {user_create.username}: {str(e)}", exc_info=True)
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Could not create user"
