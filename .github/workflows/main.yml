@@ -63,6 +63,13 @@ jobs:
         with:
           project_id: ${{ secrets.GCP_PROJECT_ID }}
           
+      # Grant Secret Manager access at project level
+      - name: Grant Secret Manager access at project level
+        run: |
+          gcloud projects add-iam-policy-binding ${{ secrets.GCP_PROJECT_ID }} \
+            --member="serviceAccount:716370690441-compute@developer.gserviceaccount.com" \
+            --role="roles/secretmanager.secretAccessor"
+      
       # Deploy to Cloud Run using Artifact Registry image
       - name: Deploy to Cloud Run
         run: |
