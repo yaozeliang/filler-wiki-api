@@ -76,7 +76,7 @@ jobs:
             --member="serviceAccount:716370690441-compute@developer.gserviceaccount.com" \
             --role="roles/secretmanager.secretAccessor"
       
-      # Deploy to Cloud Run using Artifact Registry image
+      # Deploy to Cloud Run using environment variables instead of secrets
       - name: Deploy to Cloud Run
         run: |
           gcloud run deploy filler-wiki-api \
@@ -84,5 +84,4 @@ jobs:
             --platform managed \
             --region ${{ secrets.GCP_REGION }} \
             --allow-unauthenticated \
-            --set-env-vars="ENVIRONMENT=production" \
-            --set-secrets="JWT_SECRET_KEY=jwt-secret:latest,MONGODB_URL=mongodb-url:latest" 
+            --set-env-vars="ENVIRONMENT=production,JWT_SECRET_KEY=${{ secrets.JWT_SECRET_KEY }},MONGODB_URL=${{ secrets.MONGODB_URL }}" 
