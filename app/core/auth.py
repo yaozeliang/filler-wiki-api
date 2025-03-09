@@ -22,8 +22,8 @@ if not SECRET_KEY:
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 30
 
-# OAuth2 scheme
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
+# OAuth2 scheme - Update the tokenUrl to include the /auth prefix
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/auth/token")
 
 async def authenticate_user(db: AsyncIOMotorDatabase, username: str, password: str):
     user_dict = await db.users.find_one({"username": username})
@@ -58,7 +58,9 @@ async def get_current_user(
         username: str = payload.get("sub")
         if username is None:
             raise credentials_exception
-    except JWTError:
+    except JWTError as e:
+        # Add logging to see what's going wrong
+        print(f"JWT Error: {str(e)}")
         raise credentials_exception
     
     user_dict = await db.users.find_one({"username": username})

@@ -1,11 +1,14 @@
 from datetime import datetime
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException, Request
+from fastapi.responses import RedirectResponse
 from app.core.database import connect_to_mongo, close_mongo_connection, get_database
 from app.routes import router, auth, brand
 from app.core.description import get_api_description
 import pytz
 import warnings
 import logging
+from fastapi.openapi.models import OAuthFlows as OAuthFlowsModel
+from fastapi.security import OAuth2PasswordBearer
 
 app = FastAPI(
     title="Filler Wiki API",
@@ -22,7 +25,8 @@ app = FastAPI(
             "description": "Brand management operations",
             "order": 2
         }
-    ]
+    ],
+    openapi_url="/openapi.json",
 )
 
 # Include combined router
@@ -56,6 +60,7 @@ async def startup_db_client():
 async def shutdown_db_client():
     await close_mongo_connection()
 
-@app.get("/")
+# Replace the root endpoint with a redirect to /docs
+@app.get("/", include_in_schema=False)
 async def root():
-    return {"message": "Hello World"} 
+    return RedirectResponse(url="/docs") 
