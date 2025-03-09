@@ -18,7 +18,6 @@ async def mongodb_client():
     yield client
     client.close()
 
-
 @pytest.fixture(scope="function")
 async def mongodb(mongodb_client):
     # Use a separate test database to avoid affecting production data
