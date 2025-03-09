@@ -84,4 +84,6 @@ jobs:
             --platform managed \
             --region ${{ secrets.GCP_REGION }} \
             --allow-unauthenticated \
-            --set-env-vars="ENVIRONMENT=production,JWT_SECRET_KEY=${{ secrets.JWT_SECRET_KEY }},MONGODB_URL=${{ secrets.MONGODB_URL }}" 
+            --service-account=fillerwiki-api-service@${{ secrets.GCP_PROJECT_ID }}.iam.gserviceaccount.com \
+            --set-env-vars="ENVIRONMENT=production" \
+            --set-secrets="JWT_SECRET_KEY=jwt-secret:latest,MONGODB_URL=mongodb-url:latest"
