@@ -13,11 +13,10 @@ class Token(BaseModel):
 class TokenData(BaseModel):
     username: Optional[str] = None
 
+# Base user model without authentication fields
 class UserBase(BaseModel):
     username: str
     email: EmailStr
-    created_at: datetime = Field(default_factory=utc_now)
-    last_login: Optional[datetime] = None
 
     class Config:
         json_encoders = {
@@ -25,11 +24,20 @@ class UserBase(BaseModel):
             datetime: lambda dt: dt.strftime("%Y-%m-%dT%H:%M:%S+0000") if dt else None
         }
 
+# Model for user creation - only includes fields needed for registration
 class UserCreate(UserBase):
     password: str
 
-class UserInDB(UserBase):
+# Internal model with all fields including timestamps
+class UserInternal(UserBase):
+    created_at: datetime = Field(default_factory=utc_now)
+    last_login: Optional[datetime] = None
+
+# Complete user model for database storage
+class UserInDB(UserInternal):
     hashed_password: str
 
+# Response model for user information
 class UserResponse(UserBase):
-    pass 
+    created_at: datetime
+    last_login: Optional[datetime] = None 

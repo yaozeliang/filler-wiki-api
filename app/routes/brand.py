@@ -1,20 +1,20 @@
-from fastapi import APIRouter, HTTPException, Depends, Query
+from fastapi import APIRouter, Depends, Query
 from fastapi.responses import JSONResponse, StreamingResponse
 import pandas as pd
 import io
 from motor.motor_asyncio import AsyncIOMotorDatabase
 from app.core.crud import MongoManager
-from app.core.schemas import BrandResponseModel
+from app.core.models.response import BrandResponseModel
 from app.core.database import get_database
 from app.core.enums import ExportFormat
+from app.core.exceptions import DatabaseException
 from typing import List, Dict, Any, Optional
 from datetime import datetime
-import json
 from app.core.logging import logger
 from app.core.auth import get_current_user
 from app.core.models.user import UserInDB
 
-router = APIRouter(prefix="/brands", tags=["Brands"])
+router = APIRouter(prefix="/brand", tags=["Brand"])
 
 @router.get("/", response_model=BrandResponseModel[List[Dict[Any, Any]]])
 async def get_brands(
@@ -96,7 +96,4 @@ async def get_brands(
 
     except Exception as e:
         logger.error(f"Error fetching brands: {str(e)}", exc_info=True)
-        return JSONResponse(
-            status_code=500,
-            content={"status": "error", "message": f"Failed to fetch brands: {str(e)}"}
-        )
+        raise DatabaseException(detail=f"Failed to fetch brands: {str(e)}")

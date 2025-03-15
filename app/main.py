@@ -1,17 +1,20 @@
 from datetime import datetime
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.responses import RedirectResponse
+from fastapi.staticfiles import StaticFiles
 from app.core.database import connect_to_mongo, close_mongo_connection, get_database
-from app.routes import router, auth, brand
+from app.routes import auth, brand, merchant  # Import individual routers directly
 from app.core.description import get_api_description
 import pytz
 import warnings
 import logging
 from fastapi.openapi.models import OAuthFlows as OAuthFlowsModel
 from fastapi.security import OAuth2PasswordBearer
+import os
+from pathlib import Path
 
 app = FastAPI(
-    title="Filler Wiki API",
+    title="Dermal Filler Wiki API <甄真>",
     description=get_api_description(),
     version="1.0.0",
     openapi_tags=[
@@ -21,18 +24,31 @@ app = FastAPI(
             "order": 1
         },
         {
-            "name": "Brands",
-            "description": "Brand management operations",
+            "name": "Brand",
+            "description": "Brand Information",
             "order": 2
+        },
+        {
+            "name": "Merchant",
+            "description": "Merchant Information",
+            "order": 3
         }
     ],
     openapi_url="/openapi.json",
 )
 
-# Include combined router
-app.include_router(router)
+# Mount static files directory
+# Get the directory of the current file (main.py)
+current_dir = Path(__file__).parent
+# Path to the images directory
+images_dir = current_dir / "images"
+# Mount the images directory to /static
+app.mount("/static", StaticFiles(directory=str(images_dir)), name="static")
+
+# Include routers - ONLY INCLUDE EACH ROUTER ONCE
 app.include_router(auth.router)
 app.include_router(brand.router)
+app.include_router(merchant.router)  # Add merchant router if not already included
 
 # Suppress the bcrypt warning
 warnings.filterwarnings("ignore", message=".*error reading bcrypt version.*")

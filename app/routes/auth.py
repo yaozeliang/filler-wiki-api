@@ -10,7 +10,7 @@ from app.core.logging import logger
 from motor.motor_asyncio import AsyncIOMotorDatabase
 from app.core.crud import get_database
 from app.core.security import get_password_hash, validate_password
-from app.core.models.user import UserCreate, UserResponse, Token
+from app.core.models.user import UserCreate, UserBase, Token
 from pymongo.errors import DuplicateKeyError, ConnectionFailure
 
 # Change tags to "Auth" and add openapi_tags metadata
@@ -22,9 +22,19 @@ router = APIRouter(
 
 # Move register endpoint first
 @router.post("/register", 
-    response_model=UserResponse,
+    response_model=UserBase,  # Use UserBase as response model to hide timestamps
     summary="Register new user",
-    description="Create a new user account with username and password"
+    description="""
+    ### Register a New User
+
+    To register a new user, please provide the following information:
+
+    - **Username**: A unique username for your account.
+    - **Email**: A valid email address for account verification and communication.
+    - **Password**: A secure password for your account. 
+
+    **Note**: The password will not be stored as plain text; it will be securely hashed before storage.
+    """
 )
 async def register_user(user_create: UserCreate, db: AsyncIOMotorDatabase = Depends(get_database)):
     try:
@@ -88,7 +98,12 @@ async def register_user(user_create: UserCreate, db: AsyncIOMotorDatabase = Depe
         logger.info(f"Fetching created user: {user_create.username}")
         created_user = await db.users.find_one({"_id": result.inserted_id})
         logger.info(f"User registered successfully: {user_create.username}")
-        return UserResponse(**created_user)
+        
+        # Return only username and email
+        return UserBase(
+            username=created_user["username"],
+            email=created_user["email"]
+        )
         
     except Exception as e:
         logger.error(f"Error registering user {user_create.username}: {str(e)}", exc_info=True)
