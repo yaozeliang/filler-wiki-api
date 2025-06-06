@@ -45,6 +45,8 @@ logs/
 Thumbs.db
 
 # PDM
+.pdm-python
+.pdm-build/
 .pdm.toml
 __pypackages__/
 

@@ -1,66 +1,36 @@
+"""Main FastAPI application module."""
 from datetime import datetime
-from fastapi import FastAPI, HTTPException, Request
+from pathlib import Path
+import logging
+import warnings
+from typing import Any
+
+import pytz
+from fastapi import FastAPI
 from fastapi.responses import RedirectResponse
 from fastapi.staticfiles import StaticFiles
-from app.core.database import connect_to_mongo, close_mongo_connection, get_database
-from app.routes import auth, brand, merchant  # Import individual routers directly
-from app.core.description import get_api_description
-import pytz
-import warnings
-import logging
-from fastapi.openapi.models import OAuthFlows as OAuthFlowsModel
-from fastapi.security import OAuth2PasswordBearer
-import os
-from pathlib import Path
+from contextlib import asynccontextmanager
 
-app = FastAPI(
-    title="Dermal Filler Wiki API <甄真>",
-    description=get_api_description(),
-    version="1.0.0",
-    openapi_tags=[
-        {
-            "name": "Auth",
-            "description": "Authentication operations",
-            "order": 1
-        },
-        {
-            "name": "Brand",
-            "description": "Brand Information",
-            "order": 2
-        },
-        {
-            "name": "Merchant",
-            "description": "Merchant Information",
-            "order": 3
-        }
-    ],
-    openapi_url="/openapi.json",
+from app.core.database import (
+    connect_to_mongo,
+    close_mongo_connection,
+    get_database,
 )
-
-# Mount static files directory
-# Get the directory of the current file (main.py)
-current_dir = Path(__file__).parent
-# Path to the images directory
-images_dir = current_dir / "images"
-# Mount the images directory to /static
-app.mount("/static", StaticFiles(directory=str(images_dir)), name="static")
-
-# Include routers - ONLY INCLUDE EACH ROUTER ONCE
-app.include_router(auth.router)
-app.include_router(brand.router)
-app.include_router(merchant.router)  # Add merchant router if not already included
+from app.routes import auth, brand, merchant, test_axione
+from app.core.description import get_api_description
 
 # Suppress the bcrypt warning
 warnings.filterwarnings("ignore", message=".*error reading bcrypt version.*")
 
-# Or redirect it to debug level instead of warning
+# Set bcrypt logger to ERROR level
 logging.getLogger("passlib.handlers.bcrypt").setLevel(logging.ERROR)
 
-@app.on_event("startup")
-async def startup_db_client():
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    """Lifespan event handler for database connection."""
+    # Startup
     try:
         await connect_to_mongo()
-        # Test the connection
         db = await get_database()
         result = await db.command("ping")
         if result.get("ok") == 1:
@@ -68,15 +38,50 @@ async def startup_db_client():
         else:
             logging.error("Failed to connect to MongoDB: Ping command failed")
     except Exception as e:
-        logging.error(f"Failed to connect to MongoDB: {str(e)}", exc_info=True)
-        # Don't raise the exception here, let the app start anyway
-        # but log the error for debugging
-
-@app.on_event("shutdown")
-async def shutdown_db_client():
+        logging.error("Failed to connect to MongoDB: %s", str(e), exc_info=True)
+    
+    yield
+    
+    # Shutdown
     await close_mongo_connection()
 
-# Replace the root endpoint with a redirect to /docs
+app = FastAPI(
+    title="Dermal Filler Wiki API <甄真>",
+    description=get_api_description(),
+    version="1.0.0",
+    lifespan=lifespan,
+    openapi_tags=[
+        {
+            "name": "Auth",
+            "description": "Authentication operations",
+            "order": 1,
+        },
+        {
+            "name": "Brand",
+            "description": "Brand Information",
+            "order": 2,
+        },
+        {
+            "name": "Merchant",
+            "description": "Merchant Information",
+            "order": 3,
+        },
+    ],
+    openapi_url="/openapi.json",
+)
+
+# Mount static files directory
+current_dir = Path(__file__).parent
+images_dir = current_dir / "images"
+app.mount("/static", StaticFiles(directory=str(images_dir)), name="static")
+
+# Include routers
+app.include_router(auth.router)
+app.include_router(brand.router)
+app.include_router(merchant.router)
+app.include_router(test_axione.router)
+
 @app.get("/", include_in_schema=False)
-async def root():
+async def root() -> RedirectResponse:
+    """Redirect root endpoint to API documentation."""
     return RedirectResponse(url="/docs") 

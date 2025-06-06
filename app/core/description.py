@@ -1,16 +1,23 @@
+"""API description generation module."""
 from datetime import datetime
-import pytz
-from fastapi.staticfiles import StaticFiles
 from pathlib import Path
 import os
 
-TARGET_TIME_FORMAT = "%Y-%m-%dT%H:%M+0000"    
+import pytz
+from fastapi.staticfiles import StaticFiles
 
-def get_api_description():
-    """Generate the API description with current timestamps."""
+TARGET_TIME_FORMAT = "%Y-%m-%dT%H:%M+0000"
+
+
+def get_api_description() -> str:
+    """Generate the API description with current timestamps.
+    
+    Returns:
+        str: Formatted API description with current UTC timestamp.
+    """
     return """
 
-### 🎯  Last Update@UTC 🌐 {}
+### Description
 
 | Module | Description | Status |
 |--------|-------------|--------|
@@ -27,10 +34,7 @@ def get_api_description():
 I appreciate you using the API! If it has been helpful to you, your support will motivate me to enhance it even further, 感谢您的使用，您的鼓励会激励我做得更好
 
    <div style="text-align: center;">
-     <img src="/static/wechat_pay.jpg" alt="..." width="100" height="auto" style="border-radius: 10px;">
+     <img src="/static/wechat_pay.jpg" alt="WeChat Pay QR Code" width="100" height="auto" style="border-radius: 10px;">
      <p style="font-size: 4px; color: #666; margin-top: 5px;">WeChat Pay</p>
    </div>
-
-""".format(
-    datetime.now(pytz.UTC).strftime(TARGET_TIME_FORMAT),
-)
+"""
